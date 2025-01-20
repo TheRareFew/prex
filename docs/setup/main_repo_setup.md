@@ -39,8 +39,14 @@ git checkout -b main
 git add .
 git commit -m "feat: initial project setup"
 
-# If you've already added and committed files, just run:
-# git checkout -b main
+# If the remote has existing files (like README and .gitignore),
+# pull them first and merge
+git pull origin main --allow-unrelated-histories
+
+# If you get merge conflicts, resolve them in the conflicting files
+# (look for <<<<<<< HEAD markers), then:
+git add .
+git commit -m "chore: resolve merge conflicts"
 
 # Push to main branch
 git push -u origin main
