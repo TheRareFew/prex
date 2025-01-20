@@ -1,0 +1,9 @@
+[submodule "frontend"]
+	path = frontend
+	url = https://github.com/TheRareFew/prex-frontend
+[submodule "backend"]
+	path = backend
+	url = https://github.com/TheRareFew/prex-backend.git
+[submodule "supabase"]
+	path = supabase
+	url = https://github.com/TheRareFew/prex-supabase.git

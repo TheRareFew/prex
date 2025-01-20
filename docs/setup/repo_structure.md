@@ -3,18 +3,32 @@
 This document describes the deployment repository structure. For local development structure, see `project_structure.md`.
 
 ## 1. Frontend Repository (`prex-frontend`)
-- Contains React/Node.js application
+- Contains React/TypeScript application with AWS Amplify authentication
 - Deployed via AWS Amplify
+- Uses Supabase for data and real-time features
 - Structure:
 ```
 prex-frontend/
 ├── src/
+│   ├── components/
+│   │   └── auth/
+│   ├── lib/
+│   ├── types/
+│   ├── App.tsx
+│   └── index.tsx
 ├── public/
 ├── amplify/
-├── .gitignore
+├── .github/workflows/
+├── .env
 ├── package.json
 └── README.md
 ```
+
+Key Features:
+- AWS Amplify for authentication
+- Supabase client for data operations
+- TypeScript support
+- GitHub Actions CI/CD integration
 
 ## 2. Supabase Repository (`prex-supabase`)
 - Contains Supabase migrations, functions, and configurations

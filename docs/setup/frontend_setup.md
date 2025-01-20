@@ -1,36 +1,16 @@
-# Frontend Repository Setup and Deployment Guide
-
-## Repository Setup
-
-### 1. Create GitHub Repository
-1. Go to GitHub and create a new repository named `prex-frontend`
-2. Initialize with a README and .gitignore (Node)
-
-### 2. Local Setup
-```bash
-# Clone the repository
-git clone https://github.com/your-org/prex-frontend.git
-cd prex-frontend
-
-# Create React app
-npx create-react-app . --template typescript
-
-# Install required dependencies
-npm install @aws-amplify/cli @aws-amplify/ui-react aws-amplify
-npm install @supabase/supabase-js
-```
+# Frontend Repository Setup and Development Guide
 
 ## Project Structure
 Your repository should follow this structure:
 ```
-prex-frontend/
+frontend/
 ├── src/
 │   ├── components/
 │   │   └── auth/
 │   │       └── AuthWrapper.tsx
-│   ├── lib/
-│   │   └── supabase.ts
-│   ├── App.tsx
+│   │   └── App.tsx
+│   │   └── types/
+│   │       └── supabase.ts
 │   └── index.tsx
 ├── public/
 ├── amplify/
@@ -39,18 +19,89 @@ prex-frontend/
 └── README.md
 ```
 
-## Setup
+## AWS Amplify Console Build Settings
 
-### 1. Environment Configuration
-Create `.env`:
-```
-REACT_APP_SUPABASE_URL=your-project-url
-REACT_APP_SUPABASE_ANON_KEY=your-anon-key
+When setting up your app in the Amplify Console, use these build settings:
+
+```yaml
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm ci
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: build
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
 ```
 
-### 2. Initialize Amplify
+Build settings explanation:
+- Frontend build command: `npm run build`
+- Build output directory: `build`
+- Node.js version: 18.x (or your preferred version)
+
+These settings match the default Create React App configuration and will:
+1. Install dependencies using `npm ci` (more reliable than `npm install`)
+2. Build the project using the standard CRA build command
+3. Serve files from the `build` directory
+4. Cache `node_modules` for faster subsequent builds
+
+## Git Setup
+Since the frontend is set up as a submodule in the main repository, first ensure it's properly initialized:
+
 ```bash
-# Configure Amplify CLI
+# From the main repo root, initialize and update submodules if not done
+git submodule update --init --recursive
+
+# Navigate to frontend directory
+cd frontend
+
+# Ensure you're on the main branch
+git checkout main
+
+# Pull latest changes
+git pull origin main
+
+# For new feature development
+git checkout -b feature/your-feature  # Create feature branch
+git add .                            # Stage changes
+git commit -m "feat: your changes"   # Commit changes
+git push -u origin feature/your-feature  # Push feature branch
+
+# After feature is complete and merged to main
+git checkout main
+git pull origin main
+
+# Return to parent repo and update submodule reference
+cd ..
+git add frontend
+git commit -m "chore: update frontend submodule"
+git push origin main
+```
+
+## Local Setup
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Create React app with TypeScript template
+npx create-react-app . --template typescript
+
+# Install required dependencies
+npm install @aws-amplify/cli @aws-amplify/ui-react aws-amplify
+npm install @supabase/supabase-js
+
+# Install Amplify CLI globally if not installed
+npm install -g @aws-amplify/cli
+
+# Configure Amplify CLI with your AWS credentials
 amplify configure
 
 # Initialize Amplify in the project
@@ -58,11 +109,36 @@ amplify init
 
 # Add authentication
 amplify add auth
+
+# Push Amplify changes to cloud
 amplify push
+
+# Copy environment file template
+cp .env.example .env
+
+# Update .env with your values:
+# REACT_APP_SUPABASE_URL=your-project-url
+# REACT_APP_SUPABASE_ANON_KEY=your-anon-key
+
+# Start development server
+npm start
 ```
 
-### 3. Supabase Client Setup
-Create `src/lib/supabase.ts`:
+## Setup
+
+### 1. Amplify Configuration
+```bash
+# Configure Amplify CLI (if not already configured)
+amplify configure
+
+# Pull existing Amplify environment
+amplify pull
+```
+
+The following sections describe the existing setup for reference:
+
+### 2. Supabase Client Setup
+The Supabase client is configured in `src/lib/supabase.ts`:
 ```typescript
 import { createClient } from '@supabase/supabase-js'
 
@@ -72,7 +148,7 @@ const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY!
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 ```
 
-### 4. Authentication Setup
+### 3. Authentication Setup
 Create `src/components/auth/AuthWrapper.tsx`:
 ```typescript
 import { Amplify } from 'aws-amplify'
@@ -164,16 +240,16 @@ function RealTimeComponent() {
 
 ## Deployment Setup
 
-### 1. AWS Amplify Console Setup
+### AWS Amplify Console Setup
 1. Go to AWS Management Console
 2. Navigate to Amplify
 3. Click "New App" > "Host web app"
-4. Connect to your GitHub repository
+4. Connect to the frontend submodule repository
 5. Add environment variables:
    - `REACT_APP_SUPABASE_URL`
    - `REACT_APP_SUPABASE_ANON_KEY`
 
-### 2. GitHub Actions (Optional)
+### GitHub Actions (Optional)
 
 Create `.github/workflows/ci.yml`:
 ```yaml
@@ -204,7 +280,7 @@ jobs:
 
 ## Development Workflow
 
-### 1. Local Development
+### Local Development
 ```bash
 # Start development server
 npm start
@@ -216,20 +292,13 @@ npm test
 npm run build
 ```
 
-### 2. Database Types
+### Database Types
 
 1. Install Supabase CLI locally
 2. Generate types:
 ```bash
 supabase gen types typescript --project-id your-project-id > src/types/supabase.ts
 ```
-
-### 3. Making Changes
-1. Create feature branch
-2. Make changes
-3. Test locally
-4. Create PR
-5. After merge, Amplify will auto-deploy
 
 ## Best Practices
 
@@ -260,5 +329,4 @@ try {
 } catch (error) {
   console.error('Error:', error.message)
 }
-```
 ```

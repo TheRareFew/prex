@@ -56,35 +56,40 @@ git push -u origin main
 Create `.gitignore`:
 ```
 # Dependencies
-node_modules/
-venv/
-__pycache__/
+**/node_modules/
+**/venv/
+**/__pycache__/
 *.pyc
 
 # Environment files
-.env
-.env.*
-!.env.example
+**/.env
+**/.env.*
+!**/.env.example
 
 # Build outputs
-dist/
-build/
-.next/
+**/dist/
+**/build/
+**/.next/
 
 # IDE and OS files
-.vscode/
-.idea/
-.DS_Store
+**/.vscode/
+**/.idea/
+**/.DS_Store
 
 # Amplify
-aws-exports.js
-awsconfiguration.json
-amplifyconfiguration.json
-amplifyconfiguration.dart
-amplify-build-config.json
-amplify-gradle-config.json
-amplifytools.xcconfig
-.secret-*
+**/aws-exports.js
+**/awsconfiguration.json
+**/amplifyconfiguration.json
+**/amplifyconfiguration.dart
+**/amplify-build-config.json
+**/amplify-gradle-config.json
+**/amplifytools.xcconfig
+**/.secret-*
+
+# Don't ignore component directories
+!frontend/
+!backend/
+!supabase/
 ```
 
 ### Initialize README.md
@@ -121,12 +126,26 @@ See the docs/ directory for detailed setup and architecture documentation.
 ### Add Child Repositories as Submodules
 ```bash
 # From the prex directory
-git submodule add https://github.com/your-org/prex-frontend.git frontend
-git submodule add https://github.com/your-org/prex-backend.git backend
-git submodule add https://github.com/your-org/prex-supabase.git supabase
+# If you get gitignore errors, use -f flag
+git submodule add -f https://github.com/your-org/prex-frontend.git frontend
+git submodule add -f https://github.com/your-org/prex-backend.git backend
+git submodule add -f https://github.com/your-org/prex-supabase.git supabase
 
 # Initialize and update submodules
 git submodule update --init --recursive
+```
+
+### Removing a Submodule (if needed)
+If you need to undo a submodule addition:
+```bash
+# Remove the submodule entry from .git/config
+git submodule deinit -f <submodule-name>
+
+# Remove the submodule from .git/modules
+git rm -f <submodule-name>
+
+# If needed, manually remove the directory
+rm -rf <submodule-name>
 ```
 
 ### Create Documentation Directory
@@ -223,56 +242,4 @@ volumes:
 - `develop` - Development/Staging
 - `feature/*` - Feature branches
 - `release/*` - Release branches
-- `hotfix/*` - Hot fix branches
-
-## 6. Next Steps
-
-1. Follow individual setup guides:
-   - `frontend_setup.md`
-   - `backend_setup.md`
-   - `supabase_setup.md`
-
-2. Set up CI/CD:
-   - Configure GitHub Actions in each child repository
-   - Set up necessary secrets and environment variables
-   - Configure parent repository CI/CD for integration testing
-
-3. Configure development environment:
-   - Install required tools (Node.js, Python, Docker)
-   - Set up local environment variables
-   - Initialize development databases
-
-## Common Tasks
-
-### Adding a New Feature Across Components
-1. Create feature branches in relevant submodules:
-```bash
-cd frontend
-git checkout -b feature/new-feature
-# Make frontend changes
-
-cd ../backend
-git checkout -b feature/new-feature
-# Make backend changes
-```
-
-2. Create a feature branch in parent repo to track submodule changes:
-```bash
-git checkout -b feature/new-feature
-git add frontend backend
-git commit -m "feat: implement new feature"
-```
-
-### Updating All Components
-```bash
-# Pull latest changes for parent repo
-git pull origin main
-
-# Update all submodules to their latest versions
-git submodule update --remote
-
-# Commit submodule updates
-git add .
-git commit -m "chore: update all submodules"
-git push origin main
-``` 
+- `hotfix/*`
