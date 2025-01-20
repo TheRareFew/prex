@@ -32,11 +32,15 @@ git init
 # Add the remote repository
 git remote add origin https://github.com/your-org/prex.git
 
-# Add your files
-git add .
+# Create and switch to main branch
+git checkout -b main
 
-# Create initial commit
+# Add your files (if not already added and committed)
+git add .
 git commit -m "feat: initial project setup"
+
+# If you've already added and committed files, just run:
+# git checkout -b main
 
 # Push to main branch
 git push -u origin main
