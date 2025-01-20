@@ -22,3 +22,6 @@ __pycache__/
 docker-compose.yml
 
 docs/hidden/
+
+# Supabase
+supabase/config.prod.toml
