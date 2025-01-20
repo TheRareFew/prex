@@ -1,0 +1,13 @@
+
+ZENDESK (Software to clone)
+Zendesk is a cloud-based customer service platform that helps businesses improve their communication with customers. It offers a variety of tools, including: 
+    Helpdesk: Tracks, prioritizes, and solves customer tickets
+    Help center: A knowledge base that organizes frequently asked questions and product features
+    Chat: Provides quick help and creates a personal connection with customers
+    Email marketing: Helps businesses market to their customers
+    Sales: Helps businesses sell their products
+    Employee engagement: Helps businesses engage with their employees
+Zendesk also uses AI to help customers and employees. This includes: 
+    AI agents: Autonomous bots that can work alone or with human agents
+    Workforce management: Optimizes team productivity and quality assurance
+    Quality assurance: Transforms your business

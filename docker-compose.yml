@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # Frontend service is optional for local development
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_BACKEND_URL=http://localhost:8000
+      - REACT_APP_SUPABASE_URL=http://localhost:54321
+      - REACT_APP_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    depends_on:
+      - backend
+      - supabase
+    profiles:
+      - full
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=1
+      - SUPABASE_URL=http://localhost:54321
+      - SUPABASE_KEY=${SUPABASE_SERVICE_KEY}
+    depends_on:
+      - supabase
+
+  supabase:
+    image: supabase/supabase-local
+    ports:
+      - "54321:54321"  # REST and Auth API
+      - "54322:54322"  # Studio
+      - "54323:54323"  # Inbucket
+      - "54324:54324"  # Storage
+    volumes:
+      - ./supabase/volumes/db:/var/lib/postgresql/data
+      - ./supabase/migrations:/supabase/migrations
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD} 

@@ -1,0 +1,58 @@
+USER
+------------------------------------------------------------------------------------------------
+action: start help ticket via ai chat 
+-> chatbot determines if it can give a good answer 
+-> if good answer can be given:
+	-> try good answer
+	-> gauge user satisfaction
+	-> if unresolved:
+		-> ticket is escalated  (NOTE: THERE COULD BE THE OPTION TO LET THE BOT TRY AGAIN)
+-> else:
+	-> ticket is escalated
+	-> user is informed
+-> conversation is graded and recorded
+
+action: view customer knowledge base
+-> search bar to query knowledge base using AI search
+-> view posts by category
+-> view FAQ posts
+
+	
+
+EMPLOYEE/REP
+------------------------------------------------------------------------------------------------
+action: view dashboard
+-> all active tickets ranked by priority (middle of screen)
+-> notifications
+-> chat bar on right panel (could be either email history or live chat)
+
+action: view employeeknowledge base
+-> search bar to query knowledge base using AI search
+-> view posts by category
+-> view FAQ posts
+
+action: add to customer knowledge base
+-> add new documents
+-> delete old documents
+-> update existing documents
+-> generate FAQ posts from documents; use prior tickets to determine what questions are most common
+    -> manually review and edit FAQ posts before posting
+
+
+ADMIN
+------------------------------------------------------------------------------------------------
+action: view high-level analytics regarding ticketing
+-> view all employees
+-> view metrics regarding ticket resolution, employee performance, customer satisfaction, etc.
+    -> Graphs and charts
+
+action: update customer/employee knowledge base
+-> add new documents
+-> delete old documents
+-> update existing documents
+-> generate FAQ posts from documents; use prior tickets to determine what questions are most common
+    -> manually review and edit FAQ posts before posting
+
+
+
+

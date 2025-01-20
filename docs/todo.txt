@@ -1,0 +1,53 @@
+- PRD
+    - Prex is a platform that uses AI to help businesses improve their communication with customers. It includes a chatbot that can help customers with their questions and a dashboard that allows employees to view and manage tickets. 
+    - Tech stack:
+        - Amplify
+            - Auth
+            - Frontend hosting
+        - Node
+        - React
+        - Supabase
+            - Database
+            - Storage
+            - API functions for Frontend
+        - Langchain
+        - FastAPI
+            - Use for AI pipeline
+            - endpoints should only be hit by supabase functions
+            -   
+        - ECS/Fargate
+            - Deploy FastAPI app
+
+    - Prompt: 
+- Frontend design doc
+- AI pipeline design doc
+    - Knowledge base
+    - agents
+    - retreival
+    - feedback loop
+    - vector DBs in supabase
+    - Prompt: Create a document outlining the best methods to approach implenting the AI pipeline for this application. You are a senior AI engineer with experience in Langchain, OpenAI, Supabase, and FastAPI. Focus on high-level design and implementation. Do not worry about the specific code, just the high-level design.
+- Database design doc
+    - Prompt: Create a document outlining the database schema, including tables, columns, and relationships. This is going to be a Supabase database.
+- Supabase backend design doc
+- FastAPI backend design doc
+
+
+
+Tech stack proof of concept:
+    - Node/react deployment on Amplify from github
+        - auth
+        - one button that hits a supabase endpoint; returns a value
+        - one button that hits a supabase endpoint
+    - Supabase:
+        - deployment via github actions
+        - one test table with one column
+        - one endpoint that returns one value from the test table
+        - one supabase function that queries our ai backend
+    - AI backend:
+        - FastAPI endpoint that returns a value
+        - ECS/Fargate
+        - make sure we have easy deployment from github
+    - Prompt: Create a document outlining the exact steps to deploy a tech stack proof of concept. This must meet every guideline from lines 37-50 of todo.txt. 
+
+- Figure out lambda 

@@ -1,0 +1,20 @@
+# Component directories (managed as separate repos)
+/frontend/
+/backend/
+/supabase/
+
+# Keep shared config and docs
+!/docs/
+!docker-compose.yml
+!README.md
+
+# Common patterns
+node_modules/
+__pycache__/
+*.pyc
+.env
+.env.*
+.DS_Store
+.vscode/
+.idea/
+*.log 
