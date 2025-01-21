@@ -1,0 +1,38 @@
+frontend/
+├── public/                     # Static files
+│   ├── index.html
+│   └── assets/
+│       └── images/
+├── src/
+│   ├── components/            # React components
+│   │   ├── common/           # Shared components
+│   │   ├── layout/           # Layout components
+│   │   ├── features/         # Feature-specific components
+│   │   └── auth/             # Authentication components
+│   │       └── AuthWrapper.tsx
+│   ├── hooks/                # Custom React hooks
+│   ├── lib/                  # Library configurations
+│   │   ├── aws-exports.ts    # AWS configuration
+│   │   └── supabase.ts       # Supabase configuration
+│   ├── pages/                # Page components
+│   ├── services/             # API and service functions
+│   ├── utils/                # Helper functions and utilities
+│   │   ├── App.test.tsx     # App component tests
+│   │   ├── reportWebVitals.ts # Performance monitoring
+│   │   └── setupTests.ts    # Test configuration
+│   ├── styles/               # CSS/SCSS files
+│   │   ├── App.css          # App-specific styles
+│   │   └── index.css        # Global styles
+│   ├── constants/            # Constants and configuration
+│   ├── types/                # TypeScript types/interfaces
+│   ├── context/              # React Context files
+│   ├── App.tsx               # Main App component
+│   └── index.tsx             # Entry point
+├── .env                      # Environment variables
+├── .env.example              # Example environment variables
+├── .env.production           # Production environment variables
+├── .gitignore
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+└── README.md

@@ -1,0 +1,25 @@
+Database Schema:
+
+
+
+tickets
+    - id (uuid, primary key)
+    - created_at (timestamptz)
+    - updated_at (timestamptz)
+    - status (text)
+    - category (text, nullable)
+    - assigned_to (uuid, references users.id, nullable)
+    - created_by (uuid, references auth.users.id)
+
+messages
+    - id (uuid, primary key)
+    - ticket_id (uuid, references tickets.id)
+    - created_by (uuid, references auth.users.id)
+    - created_at (timestamptz)
+    - message (text)
+
+Notes:
+- All tables have RLS (Row Level Security) enabled
+- All timestamp fields default to current time
+- All IDs use uuid_generate_v4() for generation
+- Updated_at fields are automatically managed by triggers

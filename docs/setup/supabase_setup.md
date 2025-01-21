@@ -222,6 +222,10 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 Add to repository secrets:
 - `SUPABASE_ACCESS_TOKEN`
 - `SUPABASE_PROJECT_ID`
+- `SUPABASE_DB_PASSWORD`
+- `SUPABASE_DB_URL`
+- `SUPABASE_PROD_CONFIG`
+  - This is your config.toml file for production; it should be converted to a base64 string.
 
 ## Deployment
 
