@@ -3,3 +3,7 @@ I like supabase migrations way more than using alembic.
 
 docker logs supabase_auth_supabase --tail 100
 docker logs supabase_db_supabase --tail 100
+
+
+dump entire database schema to file
+supabase db dump --file supabase/seed.sql

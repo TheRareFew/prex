@@ -1,14 +1,27 @@
 Database Schema:
 
+employees
+    - id (tied to auth.users.id)
+    - permissions (enum: super_admin, admin, manager, agent)
+    - department (enum: sales, marketing, support, engineering, other)
+    - shift (enum: morning, afternoon, evening, night)
+    - description (text, nullable)
 
+customers
+    - id (tied to auth.users.id)
+    - product interests (array of strings, default empty)
+    - is_registered (boolean, default true)
 
 tickets
     - id (uuid, primary key)
+    - name (text, nullable)
     - created_at (timestamptz)
     - updated_at (timestamptz)
-    - status (text)
-    - category (text, nullable)
-    - assigned_to (uuid, references users.id, nullable)
+    - resolved (boolean, default false)
+    - status (enum: fresh, in progress, closed)
+    - priority (enum: low, medium, high, critical)
+    - category (enum: general, billing, technical, feeback, account, feature request, other)
+    - assigned_to (uuid, references auth.users.id, nullable)
     - created_by (uuid, references auth.users.id)
 
 messages
@@ -23,3 +36,4 @@ Notes:
 - All timestamp fields default to current time
 - All IDs use uuid_generate_v4() for generation
 - Updated_at fields are automatically managed by triggers
+- All ticket enums have appropriate defaults (status: fresh, priority: low, category: general)
