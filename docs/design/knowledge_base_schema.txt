@@ -1,0 +1,58 @@
+TABLES:
+
+1. articles
+   - id: UUID (PK)
+   - title: TEXT
+   - description: TEXT
+   - content: TEXT
+   - status: article_status_type ENUM ('draft', 'pending_approval', 'approved', 'rejected', 'archived')
+   - created_by: UUID (FK -> auth.users.id)
+   - created_at: TIMESTAMPTZ
+   - updated_at: TIMESTAMPTZ
+   - published_at: TIMESTAMPTZ
+   - view_count: INTEGER
+   - is_faq: BOOLEAN
+   - category: article_category_type ENUM (we can define common categories)
+   - slug: TEXT (URL-friendly version of title)
+
+2. article_versions
+   - id: UUID (PK)
+   - article_id: UUID (FK -> articles.id)
+   - title: TEXT
+   - description: TEXT
+   - content: TEXT
+   - created_at: TIMESTAMPTZ
+   - created_by: UUID (FK -> auth.users.id)
+   - version_number: INTEGER
+   - change_summary: TEXT
+
+3. approval_requests
+   - id: UUID (PK)
+   - article_id: UUID (FK -> articles.id)
+   - version_id: UUID (FK -> article_versions.id)
+   - submitted_by: UUID (FK -> auth.users.id)
+   - submitted_at: TIMESTAMPTZ
+   - reviewed_by: UUID (FK -> auth.users.id)
+   - reviewed_at: TIMESTAMPTZ
+   - status: approval_status_type ENUM ('pending', 'approved', 'rejected')
+   - feedback: TEXT
+
+4. article_tags
+   - id: UUID (PK)
+   - article_id: UUID (FK -> articles.id)
+   - tag: TEXT
+
+RELATIONSHIPS:
+- An article can have many versions (1:N)
+- An article can have many approval requests (1:N)
+- An article can have many tags (1:N)
+- A user can create many articles (1:N)
+- A user can review many approval requests (1:N)
+
+NOTES:
+- Will use RLS policies to control access based on user roles
+- Will need to create appropriate indexes for frequent queries
+- Will track article history through versions table
+- View count will help with analytics and sorting
+- Tags will help with searchability and categorization
+- Slug field will enable SEO-friendly URLs

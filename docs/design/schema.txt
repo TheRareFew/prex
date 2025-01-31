@@ -1,39 +1,195 @@
 Database Schema:
 
+ENUM Types:
+- permission_type: super_admin, admin, manager, agent
+- department_type: sales, marketing, support, engineering, other
+- shift_type: morning, afternoon, evening, night
+- ticket_status_type: fresh, in_progress, closed
+- ticket_priority_type: low, medium, high, critical
+- ticket_category_type: general, billing, technical, feedback, account, feature_request, other
+- article_status_type: draft, pending_approval, approved, rejected, archived
+- article_category_type: general, product, service, troubleshooting, faq, policy, other
+- approval_status_type: pending, approved, rejected
+- message_sender_type: employee, customer
+
+Tables:
+
+bots
+    - id (uuid, primary key)
+    - name (text, not null)
+    - created_at (timestamptz, default now)
+
 employees
-    - id (tied to auth.users.id)
-    - permissions (enum: super_admin, admin, manager, agent)
-    - department (enum: sales, marketing, support, engineering, other)
-    - shift (enum: morning, afternoon, evening, night)
+    - id (uuid, primary key, references auth.users.id)
+    - permissions (permission_type)
+    - department (department_type)
+    - shift (shift_type)
     - description (text, nullable)
 
 customers
-    - id (tied to auth.users.id)
-    - product interests (array of strings, default empty)
+    - id (uuid, primary key, references auth.users.id)
+    - product_interests (text[], default empty)
     - is_registered (boolean, default true)
 
 tickets
     - id (uuid, primary key)
     - name (text, nullable)
-    - created_at (timestamptz)
-    - updated_at (timestamptz)
+    - created_at (timestamptz, default now)
+    - updated_at (timestamptz, default now)
     - resolved (boolean, default false)
-    - status (enum: fresh, in progress, closed)
-    - priority (enum: low, medium, high, critical)
-    - category (enum: general, billing, technical, feeback, account, feature request, other)
+    - status (ticket_status_type, default 'fresh')
+    - priority (ticket_priority_type, default 'low')
+    - category (ticket_category_type, default 'general')
     - assigned_to (uuid, references auth.users.id, nullable)
+    - created_by (uuid, references auth.users.id)
+
+ticket_notes
+    - id (uuid, primary key)
+    - ticket_id (uuid, references tickets.id ON DELETE CASCADE)
+    - content (text)
+    - created_at (timestamptz, default now)
     - created_by (uuid, references auth.users.id)
 
 messages
     - id (uuid, primary key)
     - ticket_id (uuid, references tickets.id)
-    - created_by (uuid, references auth.users.id)
-    - created_at (timestamptz)
+    - created_by (uuid, references auth.users.id, nullable)
+    - bot_id (uuid, references bots.id, nullable)
+    - sender_type (message_sender_type, auto-set by trigger)
+    - created_at (timestamptz, default now)
     - message (text)
+    - is_system_message (boolean, default false)
+    - CONSTRAINT: either created_by or bot_id must be set, but not both
+
+conversations
+    - id (uuid, primary key)
+    - user_id (uuid, references auth.users.id, not null)
+    - created_at (timestamptz, default now)
+    - updated_at (timestamptz, default now, auto-updated by trigger)
+
+manager_prompts
+    - id (uuid, primary key)
+    - conversation_id (uuid, references conversations.id ON DELETE CASCADE, not null)
+    - prompt (text, not null)
+    - created_at (timestamptz, default now)
+
+manager_responses
+    - id (uuid, primary key)
+    - prompt_id (uuid, references manager_prompts.id ON DELETE CASCADE, not null)
+    - response (text, not null)
+    - created_at (timestamptz, default now)
+
+response_notes
+    - id (uuid, primary key)
+    - response_id (uuid, references manager_responses.id ON DELETE CASCADE, not null)
+    - created_by (uuid, references auth.users.id, not null)
+    - note (text, not null)
+    - created_at (timestamptz, default now)
+
+articles
+    - id (uuid, primary key)
+    - title (text)
+    - description (text, nullable)
+    - content (text)
+    - status (article_status_type, default 'draft')
+    - created_by (uuid, references auth.users.id)
+    - created_at (timestamptz, default now)
+    - updated_at (timestamptz, default now)
+    - published_at (timestamptz, nullable)
+    - view_count (integer, default 0)
+    - is_faq (boolean, default false)
+    - category (article_category_type, default 'general')
+    - slug (text, unique)
+
+article_notes
+    - id (uuid, primary key)
+    - article_id (uuid, references articles.id ON DELETE CASCADE)
+    - content (text)
+    - created_at (timestamptz, default now)
+    - created_by (uuid, references auth.users.id)
+
+article_versions
+    - id (uuid, primary key)
+    - article_id (uuid, references articles.id ON DELETE CASCADE)
+    - title (text)
+    - description (text, nullable)
+    - content (text)
+    - created_at (timestamptz, default now)
+    - created_by (uuid, references auth.users.id)
+    - version_number (integer)
+    - change_summary (text, nullable)
+    - UNIQUE(article_id, version_number)
+
+approval_requests
+    - id (uuid, primary key)
+    - article_id (uuid, references articles.id ON DELETE CASCADE)
+    - version_id (uuid, references article_versions.id ON DELETE CASCADE)
+    - submitted_by (uuid, references auth.users.id)
+    - submitted_at (timestamptz, default now)
+    - reviewed_by (uuid, references auth.users.id, nullable)
+    - reviewed_at (timestamptz, nullable)
+    - status (approval_status_type, default 'pending')
+    - feedback (text, nullable)
+
+article_tags
+    - id (uuid, primary key)
+    - article_id (uuid, references articles.id ON DELETE CASCADE)
+    - tag (text)
+    - UNIQUE(article_id, tag)
+
+Views:
+
+employee_profiles
+    - id (from employees)
+    - permissions (from employees)
+    - department (from employees)
+    - shift (from employees)
+    - description (from employees)
+    - full_name (from auth.users.raw_user_meta_data)
+    - email (from auth.users)
 
 Notes:
-- All tables have RLS (Row Level Security) enabled
+- All tables have Row Level Security (RLS) enabled
 - All timestamp fields default to current time
 - All IDs use uuid_generate_v4() for generation
 - Updated_at fields are automatically managed by triggers
-- All ticket enums have appropriate defaults (status: fresh, priority: low, category: general)
+- Messages have an automatic trigger to set sender_type based on whether created_by is an employee
+- All foreign keys to auth.users.id are used to link with Supabase authentication
+- Article-related tables use CASCADE deletion to maintain referential integrity
+- Default bot with ID '00000000-0000-0000-0000-000000000000' and name 'AI Bot' is created
+- Conversations have an auto-updating updated_at field managed by trigger
+- Manager system tables (conversations, prompts, responses, notes) use CASCADE deletion
+
+RLS Policies:
+- Tickets:
+  * All authenticated users can view all tickets
+  * All authenticated users can insert tickets
+  * Users can only update their own tickets
+- Ticket Notes:
+  * All authenticated users can view all ticket notes
+  * All authenticated users can create ticket notes
+- Articles:
+  * All authenticated users can view all articles
+  * All authenticated users can create articles
+- Article Notes:
+  * All authenticated users can view all article notes
+  * All authenticated users can create article notes
+- Messages:
+  * All authenticated users can view all messages
+  * All authenticated users can create messages
+- Employees:
+  * All authenticated users can view all employees
+  * Users can insert their own employee record
+  * Users can update their own employee record
+- Conversations:
+  * Users can only view their own conversations
+  * Users can only insert their own conversations
+- Manager Prompts:
+  * Users can only view prompts in their conversations
+  * Users can only insert prompts in their conversations
+- Manager Responses:
+  * Users can only view responses to their prompts
+  * Users can only insert responses to their prompts
+- Response Notes:
+  * Users can only view notes on responses to their prompts
+  * Users can only insert notes on responses to their prompts

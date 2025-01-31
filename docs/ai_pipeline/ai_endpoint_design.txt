@@ -1,0 +1,57 @@
+
+
+user_message
+    - input needed: messages json (chat history)
+    - determine if llm can help
+          - if yes, query llm
+            - determine how to handle query
+                - think: could be a feature request, a general question, feedback, etc
+          - if no, return value to escalate ticket  
+
+    - agent tools:
+        - record feature request
+        - record feedback
+        - search kb
+        - search info store 
+        - escalate ticket 
+
+    - output: response OR escalate ticket value
+
+    - need to figure out:
+        - how to stream output or otherwise make user experience better while waiting for a response
+
+generate_article
+    - input needed: query
+    - agent tools:
+        - search info store
+        - search kb
+            - reference similar articles
+        - write article
+    - output: article json
+
+update_article
+    - input needed: query; article json
+    - agent tools:
+        - search info store
+        - search kb
+            - reference similar articles
+        - write article
+    - output: article json
+
+process_ticket
+    - input needed: messages json (ticket chat history)
+    - agent tools:
+        - determine category
+        - determine priority
+        - designate employee
+        - write note
+    - output: ticket json (category, priority, employee, note)
+
+upload_document
+    - input needed: document
+    - parse document
+    - add appropriate metadata 
+    - upload to info store
+    - output: success or failure
+
+

@@ -29,3 +29,5 @@ supabase/config.prod.toml
 supabase/config.dev2.toml
 
 .supabase/
+.cursorrules
+grug.txt

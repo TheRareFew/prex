@@ -1,4 +1,4 @@
-# AI Pipeline Design for Prex - AI-Powered Customer Communication Platform
+# AI Features Overview for Prex - AI-Powered Customer Communication Platform
 
 ---
 

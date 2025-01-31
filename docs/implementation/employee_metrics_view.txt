@@ -1,0 +1,41 @@
+Employee Metrics View Schema (employee_performance_metrics)
+
+This view will combine data from multiple tables to provide comprehensive employee performance metrics.
+
+Fields:
+- employee_id (uuid, from employees.id)
+- full_name (text, from employee_profiles.full_name)
+- department (department_type, from employees.department)
+
+Ticket Metrics:
+- total_tickets_assigned (integer) -- Count of tickets.assigned_to
+- total_tickets_resolved (integer) -- Count of tickets where resolved = true
+- avg_resolution_time (interval) -- Average time between ticket creation and resolution
+- current_open_tickets (integer) -- Count of unresolved assigned tickets
+- tickets_by_priority (json) -- Distribution of tickets by priority
+- tickets_by_category (json) -- Distribution of tickets by category
+
+Response Metrics:
+- avg_first_response_time (interval) -- Average time to first response on tickets
+- total_messages_sent (integer) -- Count of messages sent by employee
+- avg_messages_per_ticket (float) -- Average number of messages per ticket
+
+Knowledge Base Metrics:
+- total_articles_created (integer) -- Count of articles created
+- total_articles_published (integer) -- Count of articles with status = 'approved'
+- article_approval_rate (float) -- Percentage of submitted articles that were approved
+- total_article_views (integer) -- Sum of view_count from articles
+- articles_by_category (json) -- Distribution of articles by category
+
+Time-based Metrics (Last 30 days):
+- monthly_tickets_resolved (integer)
+- monthly_articles_created (integer)
+- monthly_response_rate (float) -- Percentage of assigned tickets with responses
+
+Notes:
+- All counts and metrics should respect RLS policies
+- Time-based calculations should use created_at/updated_at timestamps
+- JSON fields will contain key-value pairs for distribution analysis
+- Metrics can be filtered by department and date ranges
+- View should be materialized and refreshed daily for performance
+- Additional indexes may be needed on the base tables for efficient computation

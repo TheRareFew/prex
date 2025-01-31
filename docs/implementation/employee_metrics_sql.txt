@@ -1,0 +1,260 @@
+-- First drop existing objects
+DROP FUNCTION IF EXISTS refresh_employee_metrics() CASCADE;
+DROP MATERIALIZED VIEW IF EXISTS employee_performance_metrics CASCADE;
+DROP TRIGGER IF EXISTS refresh_employee_metrics_tickets ON tickets;
+DROP TRIGGER IF EXISTS refresh_employee_metrics_messages ON messages;
+DROP TRIGGER IF EXISTS refresh_employee_metrics_articles ON articles;
+DROP TRIGGER IF EXISTS refresh_employee_metrics_employees ON employees;
+
+-- Set the role to postgres for creating objects
+SET ROLE postgres;
+
+-- Create the employee performance metrics materialized view
+CREATE MATERIALIZED VIEW employee_performance_metrics AS
+WITH all_employees AS (
+    SELECT id as employee_id FROM employees
+    UNION
+    SELECT assigned_to FROM tickets WHERE assigned_to IS NOT NULL
+    UNION
+    SELECT created_by FROM articles WHERE created_by IS NOT NULL
+),
+ticket_counts AS (
+    SELECT 
+        assigned_to as employee_id,
+        priority,
+        category,
+        COUNT(*) as count,
+        COUNT(*) FILTER (WHERE resolved = true) as resolved_count,
+        COUNT(*) FILTER (WHERE resolved = false) as unresolved_count,
+        AVG(CASE 
+            WHEN resolved = true 
+            THEN EXTRACT(EPOCH FROM (updated_at - created_at))
+            ELSE NULL 
+        END) as avg_resolution_seconds
+    FROM tickets
+    WHERE assigned_to IS NOT NULL
+    GROUP BY assigned_to, priority, category
+),
+priority_counts AS (
+    SELECT 
+        employee_id,
+        priority,
+        SUM(count) as count
+    FROM ticket_counts
+    GROUP BY employee_id, priority
+),
+category_counts AS (
+    SELECT 
+        employee_id,
+        category,
+        SUM(count) as count
+    FROM ticket_counts
+    GROUP BY employee_id, category
+),
+ticket_metrics AS (
+    SELECT 
+        employee_id,
+        SUM(count) as total_tickets_assigned,
+        SUM(resolved_count) as total_tickets_resolved,
+        SUM(unresolved_count) as current_open_tickets,
+        MAKE_INTERVAL(secs => AVG(avg_resolution_seconds)) as avg_resolution_time,
+        (SELECT jsonb_object_agg(priority, count) FROM priority_counts pc WHERE pc.employee_id = tc.employee_id) as tickets_by_priority,
+        (SELECT jsonb_object_agg(category, count) FROM category_counts cc WHERE cc.employee_id = tc.employee_id) as tickets_by_category
+    FROM ticket_counts tc
+    GROUP BY employee_id
+),
+first_responses AS (
+    SELECT 
+        t.id as ticket_id,
+        t.assigned_to as employee_id,
+        t.created_at as ticket_created_at,
+        MIN(m.created_at) as first_response_at
+    FROM tickets t
+    INNER JOIN messages m ON t.id = m.ticket_id 
+        AND m.sender_type = 'employee'
+    WHERE t.assigned_to IS NOT NULL 
+    GROUP BY t.id, t.assigned_to, t.created_at
+),
+response_metrics AS (
+    SELECT 
+        t.assigned_to as employee_id,
+        MAKE_INTERVAL(secs => AVG(
+            EXTRACT(EPOCH FROM (fr.first_response_at - fr.ticket_created_at))
+        )) as avg_first_response_time,
+        (
+            SELECT COUNT(*)
+            FROM messages m2
+            INNER JOIN tickets t2 ON m2.ticket_id = t2.id
+            WHERE t2.assigned_to = t.assigned_to
+            AND m2.sender_type = 'employee'
+        ) as total_messages_sent,
+        ROUND(
+            (
+                SELECT COUNT(*)::numeric
+                FROM messages m2
+                INNER JOIN tickets t2 ON m2.ticket_id = t2.id
+                WHERE t2.assigned_to = t.assigned_to
+                AND m2.sender_type = 'employee'
+            ) / NULLIF(COUNT(DISTINCT t.id), 0),
+            2
+        ) as avg_messages_per_ticket
+    FROM tickets t
+    LEFT JOIN first_responses fr ON t.id = fr.ticket_id
+    WHERE t.assigned_to IS NOT NULL
+    GROUP BY t.assigned_to
+),
+article_counts AS (
+    SELECT 
+        created_by as employee_id,
+        category,
+        COUNT(*) as count,
+        COUNT(*) FILTER (WHERE status = 'approved') as approved_count,
+        COUNT(*) FILTER (WHERE status IN ('approved', 'rejected')) as reviewed_count,
+        SUM(view_count) as total_views
+    FROM articles
+    GROUP BY created_by, category
+),
+article_category_counts AS (
+    SELECT 
+        employee_id,
+        category,
+        SUM(count) as count
+    FROM article_counts
+    GROUP BY employee_id, category
+),
+kb_metrics AS (
+    SELECT 
+        employee_id,
+        SUM(count) as total_articles_created,
+        SUM(approved_count) as total_articles_published,
+        ROUND(
+            SUM(approved_count)::numeric / 
+            NULLIF(SUM(reviewed_count), 0) * 100, 
+            2
+        ) as article_approval_rate,
+        SUM(total_views) as total_article_views,
+        (SELECT jsonb_object_agg(category, count) FROM article_category_counts acc WHERE acc.employee_id = ac.employee_id) as articles_by_category
+    FROM article_counts ac
+    GROUP BY employee_id
+),
+monthly_metrics AS (
+    SELECT 
+        t.assigned_to as employee_id,
+        COUNT(*) FILTER (WHERE t.resolved = true AND t.updated_at >= NOW() - INTERVAL '30 days') as monthly_tickets_resolved,
+        COUNT(*) FILTER (WHERE t.created_at >= NOW() - INTERVAL '30 days') as monthly_tickets_total,
+        ROUND(
+            COUNT(*) FILTER (WHERE EXISTS (
+                SELECT 1 FROM messages m 
+                WHERE m.ticket_id = t.id 
+                AND m.sender_type = 'employee'
+                AND m.created_at >= NOW() - INTERVAL '30 days'
+            ))::numeric / 
+            NULLIF(COUNT(*) FILTER (WHERE t.created_at >= NOW() - INTERVAL '30 days'), 0) * 100,
+            2
+        ) as monthly_response_rate
+    FROM tickets t
+    WHERE t.assigned_to IS NOT NULL
+    GROUP BY t.assigned_to
+)
+SELECT 
+    ae.employee_id,
+    ep.full_name,
+    e.department,
+    COALESCE(tm.total_tickets_assigned, 0) as total_tickets_assigned,
+    COALESCE(tm.total_tickets_resolved, 0) as total_tickets_resolved,
+    COALESCE(tm.current_open_tickets, 0) as current_open_tickets,
+    tm.avg_resolution_time,
+    COALESCE(tm.tickets_by_priority, '{}'::jsonb) as tickets_by_priority,
+    COALESCE(tm.tickets_by_category, '{}'::jsonb) as tickets_by_category,
+    rm.avg_first_response_time,
+    COALESCE(rm.total_messages_sent, 0) as total_messages_sent,
+    COALESCE(rm.avg_messages_per_ticket, 0) as avg_messages_per_ticket,
+    COALESCE(kb.total_articles_created, 0) as total_articles_created,
+    COALESCE(kb.total_articles_published, 0) as total_articles_published,
+    COALESCE(kb.article_approval_rate, 0) as article_approval_rate,
+    COALESCE(kb.total_article_views, 0) as total_article_views,
+    COALESCE(kb.articles_by_category, '{}'::jsonb) as articles_by_category,
+    COALESCE(mm.monthly_tickets_resolved, 0) as monthly_tickets_resolved,
+    COALESCE(mm.monthly_response_rate, 0) as monthly_response_rate
+FROM all_employees ae
+LEFT JOIN employees e ON ae.employee_id = e.id
+LEFT JOIN employee_profiles ep ON ae.employee_id = ep.id
+LEFT JOIN ticket_metrics tm ON ae.employee_id = tm.employee_id
+LEFT JOIN response_metrics rm ON ae.employee_id = rm.employee_id
+LEFT JOIN kb_metrics kb ON ae.employee_id = kb.employee_id
+LEFT JOIN monthly_metrics mm ON ae.employee_id = mm.employee_id;
+
+-- Create trigger function for refreshing the materialized view
+CREATE OR REPLACE FUNCTION public.refresh_employee_metrics_trigger()
+RETURNS trigger
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    PERFORM refresh_employee_metrics();
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create triggers for each table that should trigger a refresh
+CREATE TRIGGER refresh_employee_metrics_tickets
+AFTER INSERT OR UPDATE OR DELETE ON public.tickets
+FOR EACH STATEMENT
+EXECUTE FUNCTION public.refresh_employee_metrics_trigger();
+
+CREATE TRIGGER refresh_employee_metrics_messages
+AFTER INSERT OR UPDATE OR DELETE ON public.messages
+FOR EACH STATEMENT
+EXECUTE FUNCTION public.refresh_employee_metrics_trigger();
+
+CREATE TRIGGER refresh_employee_metrics_articles
+AFTER INSERT OR UPDATE OR DELETE ON public.articles
+FOR EACH STATEMENT
+EXECUTE FUNCTION public.refresh_employee_metrics_trigger();
+
+CREATE TRIGGER refresh_employee_metrics_employees
+AFTER INSERT OR UPDATE OR DELETE ON public.employees
+FOR EACH STATEMENT
+EXECUTE FUNCTION public.refresh_employee_metrics_trigger();
+
+-- Create unique index for concurrent refresh
+CREATE UNIQUE INDEX employee_metrics_employee_id_idx ON public.employee_performance_metrics (employee_id);
+
+-- Create refresh function
+CREATE OR REPLACE FUNCTION public.refresh_employee_metrics()
+RETURNS void
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY employee_performance_metrics;
+EXCEPTION 
+    WHEN OTHERS THEN
+        REFRESH MATERIALIZED VIEW employee_performance_metrics;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Grant permissions
+ALTER MATERIALIZED VIEW employee_performance_metrics OWNER TO postgres;
+GRANT SELECT ON employee_performance_metrics TO authenticated;
+GRANT EXECUTE ON FUNCTION public.refresh_employee_metrics() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.refresh_employee_metrics_trigger() TO authenticated;
+
+-- Initial refresh
+SELECT refresh_employee_metrics();
+
+-- Create indexes to improve query performance
+CREATE INDEX IF NOT EXISTS idx_tickets_assigned_to ON public.tickets(assigned_to);
+CREATE INDEX IF NOT EXISTS idx_tickets_resolved ON public.tickets(resolved);
+CREATE INDEX IF NOT EXISTS idx_tickets_created_at ON public.tickets(created_at);
+CREATE INDEX IF NOT EXISTS idx_tickets_updated_at ON public.tickets(updated_at);
+CREATE INDEX IF NOT EXISTS idx_messages_ticket_id ON public.messages(ticket_id);
+CREATE INDEX IF NOT EXISTS idx_messages_sender_type ON public.messages(sender_type);
+CREATE INDEX IF NOT EXISTS idx_articles_created_by ON public.articles(created_by);
+CREATE INDEX IF NOT EXISTS idx_articles_status ON public.articles(status);
+
+-- Reset role
+RESET ROLE;
+
+-- Comment on materialized view
+COMMENT ON MATERIALIZED VIEW employee_performance_metrics IS 'Comprehensive employee performance metrics including ticket handling, response times, and knowledge base contributions';

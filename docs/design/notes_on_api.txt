@@ -1,0 +1,27 @@
+supabase edge function work like this:
+
+Deno.serve(async (req) => {
+  const { name } = await req.json()
+  const data = {
+    message: `Hello ${name}!`,
+  }
+
+  return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } })
+})
+
+
+
+edge function calls api -> if api is up/down -> edge function either passes info or acts appropriately for no AI
+
+Example:
+
+- User sends message to open ticket
+- sendMessage from useMessages.ts is called
+- corresponding edge function is called
+- edge function calls api
+- api returns a response
+    - if api is down or error (400, 500, etc), system message is sent to user that their ticket is being transferred to a human
+    - if api is up (200), edge function returns response from AI api
+
+- considerations:
+    - can/should we have a triggered event in supabase to handle this instead of calling stuff from sendMessage? We'll ask an LLM about it maybe

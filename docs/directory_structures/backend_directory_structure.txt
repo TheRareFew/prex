@@ -1,0 +1,59 @@
+Folder map of z:\GAUNTLET\projects\PREX\prex\backend
+==================================================
+
+├── app/
+│   ├── __pycache__/
+│   ├── api/
+│   │   ├── __pycache__/
+│   │   ├── endpoints/
+│   │   │   ├── __pycache__/
+│   │   │   ├── __init__.py
+│   │   │   ├── article.py
+│   │   │   ├── document.py
+│   │   │   ├── manager_prompt.py
+│   │   │   ├── ticket.py
+│   │   │   └── user_message.py
+│   │   └── __init__.py
+│   ├── core/
+│   │   ├── __pycache__/
+│   │   ├── __init__.py
+│   │   └── config.py
+│   ├── models/
+│   │   ├── __pycache__/
+│   │   ├── __init__.py
+│   │   └── schemas.py
+│   ├── tools/
+│   │   ├── __pycache__/
+│   │   └── support_tools.py
+│   ├── __init__.py
+│   └── main.py
+├── devops/
+│   ├── alb-config.json
+│   ├── alb-info.txt
+│   ├── ecs-task-role.json
+│   ├── ecs-trust-policy.json
+│   ├── pass-role-policy.json
+│   ├── run-task.json
+│   ├── security-groups.json
+│   ├── setup-alb.ps1
+│   ├── setup-vpc.ps1
+│   ├── subnet-config.json
+│   ├── task-definition.json
+│   ├── trust-policy.json
+│   └── vpc-info.txt
+├── reference/
+│   ├── file_handler.py
+│   ├── message_indexer.py
+│   ├── research_agent.py
+│   └── tools.py
+├── tests/
+│   └── __init__.py
+├── venv/
+├── .env
+├── .env.example
+├── .git
+├── .gitignore
+├── docker-compose.yml
+├── Dockerfile
+├── README.md
+└── requirements.txt

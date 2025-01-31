@@ -1,0 +1,35 @@
+Folder map of z:\GAUNTLET\projects\PREX\prex\supabase
+==================================================
+
+├── .branches/
+│   └── _current_branch
+├── .github/
+│   └── workflows/
+├── .vscode/
+├── backup_stuff/
+├── functions/
+│   ├── handle-manager-prompt/
+│   │   ├── config.toml
+│   │   └── index.ts
+│   └── handle-message/
+│       ├── config.toml
+│       └── index.ts
+├── migrations/
+│   ├── 20250124222000_init.sql
+│   ├── 20250124222500_setup_permissions.sql
+│   ├── 20250124223000_add_bot_id.sql
+│   ├── 20250124223500_add_employee_insert_policy.sql
+│   ├── 20250124224000_create_message_handler_trigger.sql
+│   └── 20250124224500_add_manager_system.sql
+├── templates/
+│   ├── confirmation.html
+│   ├── invite.html
+│   ├── magic_link.html
+│   └── recovery.html
+├── .foldermapperignore
+├── .git
+├── .gitignore
+├── config.dev.toml
+├── config.prod.toml
+├── config.toml
+└── README.md

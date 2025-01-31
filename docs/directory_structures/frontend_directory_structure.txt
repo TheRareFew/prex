@@ -1,0 +1,103 @@
+Folder map of z:\GAUNTLET\projects\PREX\prex\frontend
+==================================================
+
+├── build/
+├── node_modules/
+├── public/
+│   ├── assets/
+│   │   └── images/
+│   │       └── logo.svg
+│   ├── favicon.ico
+│   ├── index.html
+│   ├── logo192.png
+│   ├── logo512.png
+│   ├── manifest.json
+│   └── robots.txt
+├── src/
+│   ├── components/
+│   │   ├── auth/
+│   │   │   ├── InviteUser.tsx
+│   │   │   ├── ProtectedRoute.tsx
+│   │   │   ├── ResetPassword.tsx
+│   │   │   ├── SignIn.tsx
+│   │   │   ├── SignUp.tsx
+│   │   │   └── UpdatePassword.tsx
+│   │   ├── common/
+│   │   │   ├── RichTextDisplay/
+│   │   │   │   └── RichTextDisplay.tsx
+│   │   │   ├── RichTextEditor/
+│   │   │   │   └── RichTextEditor.tsx
+│   │   │   └── Sidebar/
+│   │   │       ├── Sidebar.tsx
+│   │   │       ├── SidebarButton.tsx
+│   │   │       └── types.ts
+│   │   ├── features/
+│   │   │   ├── ArticleEditor/
+│   │   │   │   ├── ArticleEditor.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   └── types.ts
+│   │   │   ├── ArticleList/
+│   │   │   │   ├── ArticleCard.tsx
+│   │   │   │   ├── ArticleList.tsx
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── PendingArticlesList.tsx
+│   │   │   │   └── types.ts
+│   │   │   ├── ArticlePreview/
+│   │   │   │   └── ArticlePreview.tsx
+│   │   │   ├── AgentChat.tsx
+│   │   │   ├── AnalyticsDashboard.tsx
+│   │   │   ├── CustomerView.tsx
+│   │   │   ├── EmployeeOverview.tsx
+│   │   │   ├── KnowledgeBaseEmployee.tsx
+│   │   │   ├── KnowledgeBaseManager.tsx
+│   │   │   ├── TicketManagement.tsx
+│   │   │   └── TicketProcessing.tsx
+│   │   └── layout/
+│   │       └── DashboardLayout.tsx
+│   ├── constants/
+│   ├── context/
+│   │   ├── AuthContext.tsx
+│   │   └── ThemeContext.tsx
+│   ├── hooks/
+│   │   ├── useAgentChat.ts
+│   │   ├── useAIPredict.ts
+│   │   ├── useArticleReview.ts
+│   │   ├── useArticles.ts
+│   │   ├── useEmployeeMetrics.ts
+│   │   ├── useEmployees.ts
+│   │   ├── useMessages.ts
+│   │   ├── useSupabaseAuth.ts
+│   │   ├── useSupabaseQuery.ts
+│   │   ├── useTickets.ts
+│   │   └── useUserRole.ts
+│   ├── lib/
+│   │   ├── aws-exports.ts
+│   │   └── supabase.ts
+│   ├── public/
+│   │   └── assets/
+│   │       └── images/
+│   ├── services/
+│   │   ├── supabase/
+│   │   └── articles.ts
+│   ├── styles/
+│   │   ├── App.css
+│   │   └── index.css
+│   ├── types/
+│   │   ├── database.ts
+│   │   ├── enums.ts
+│   │   └── index.ts
+│   ├── utils/
+│   │   ├── App.test.tsx
+│   │   ├── reportWebVitals.ts
+│   │   └── setupTests.ts
+│   ├── App.tsx
+│   └── index.tsx
+├── .env
+├── .env.example
+├── .env.production
+├── .git
+├── .gitignore
+├── package-lock.json
+├── package.json
+├── tailwind.config.js
+└── tsconfig.json
